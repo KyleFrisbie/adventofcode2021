@@ -11,8 +11,8 @@ import (
 
 func main() {
 	inputFile, avgRange := readInput()
-	increaseCount := scanFile(inputFile)
-	countDepthIncrease(increaseCount, avgRange)
+	measurements := scanFile(inputFile)
+	countDepthIncrease(measurements, avgRange)
 }
 
 func readInput() (string, int) {

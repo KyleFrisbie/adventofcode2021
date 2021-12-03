@@ -2,29 +2,30 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"flag"
 	"fmt"
+	"math"
 	"os"
 	"strconv"
 	"strings"
 )
 
 func main() {
-	inputFile, avgRange := readInput()
-	increaseCount := scanFile(inputFile)
-	countDepthIncrease(increaseCount, avgRange)
+	inputFile := readInput()
+	inputs := scanFile(inputFile)
+	sums := scanMeasurements(inputs)
+	getRates(sums, len(inputs))
 }
 
-func readInput() (string, int) {
+func readInput() string {
 	var inputFile string
-	var averageRange int
 	flag.StringVar(&inputFile, "i", "../input-test.txt", "Input values file.")
-	flag.IntVar(&averageRange, "a", 1, "Range of measurements to average for calculating depth increase.")
 	flag.Parse()
-	return inputFile, averageRange
+	return inputFile
 }
 
-func scanFile(inputFile string) []int {
+func scanFile(inputFile string) [][]int {
 	file, err := os.Open(inputFile)
 	if err != nil {
 		fmt.Printf("Error: %s", err.Error())
@@ -32,35 +33,73 @@ func scanFile(inputFile string) []int {
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
-	var depths []int
+	var measurements [][]int
 	for scanner.Scan() {
-		depths = append(depths, stringToInt(scanner.Text()))
+		s := strings.Split(scanner.Text(), "")
+		var b []int
+		for _, i := range s {
+			b = append(b, stringToInt(i))
+		}
+		measurements = append(measurements, b)
 	}
 
 	if err := scanner.Err(); err != nil {
 		fmt.Printf("Error: %s", err.Error())
 	}
-	return depths
+	return measurements
 }
 
-func countDepthIncrease(measurements []int, avgRange int) {
-	lastVal := -1
-	currVal := -1
-	increases := -1
-
-	for i := (avgRange - 1); i < len(measurements); i++ {
-		lastVal = currVal
-		currVal = 0
-		for j := 0; j < avgRange; j++ {
-			currVal += measurements[i-j]
-		}
-
-		if currVal > lastVal {
-			increases++
+func scanMeasurements(measurements [][]int) []int {
+	x := make([]int, len(measurements[0]))
+	for i := 0; i < len(x); i++ {
+		x[i] = 0
+	}
+	for _, m := range measurements {
+		for i := 0; i < len(m); i++ {
+			x[i] += m[i]
 		}
 	}
+	return x
+}
 
-	fmt.Printf("Total Increases: %d", increases)
+func getRates(sums []int, totalMeasurements int) (int, int) {
+	gammaRate := make([]int, len(sums))
+	epsilonRate := make([]int, len(sums))
+
+	for i := 0; i < len(sums); i++ {
+		avg := float64(sums[i]) / float64(totalMeasurements)
+		gammaRate[i] = int(math.Floor(avg + 0.5))
+
+		epsilonRate[i] = 0
+		if gammaRate[i] == 0 {
+			epsilonRate[i] = 1
+		}
+	}
+	gr := binaryAsIntArrayToInt(gammaRate)
+	er := binaryAsIntArrayToInt(epsilonRate)
+
+	fmt.Println(gr)
+	fmt.Println(er)
+	return gr, er
+}
+
+func binaryAsIntArrayToInt(x []int) int {
+	var vals string
+	for _, i := range x {
+		vals += strconv.Itoa(i)
+	}
+	num, err := strconv.Atoi(vals)
+	if err != nil {
+		fmt.Printf("Unable to convert vals to num: %s", err)
+	}
+	s, _ := strconv.ParseUint(vals, 10, 32)
+	fmt.Printf("num: %d\n", s)
+	var b bytes.Buffer
+	b.w
+	value := fmt.Sprint(b.Bytes())
+	fmt.Println(value)
+	v, _ := strconv.Atoi(value)
+	return v
 }
 
 func stringToInt(text string) int {
